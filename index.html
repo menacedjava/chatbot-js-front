@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Chat</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #messages { max-width: 400px; margin: 20px auto; text-align: left; }
+        input, button { margin-top: 10px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Online Chat</h2>
+    <div>
+        <input id="username" type="text" placeholder="Ismingizni kiriting">
+        <button onclick="setUsername()">Kirish</button>
+    </div>
+    <div id="chat" style="display:none;">
+        <h3>Foydalanuvchilar:</h3>
+        <ul id="userList"></ul>
+        <h3>Xabarlar:</h3>
+        <div id="messages"></div>
+        <input id="messageInput" type="text" placeholder="Xabar yozing">
+        <button onclick="sendMessage()">Yuborish</button>
+    </div>
+    
+    <script>
+        const socket = io();
+        let username = "";
+
+        function setUsername() {
+            username = document.getElementById("username").value;
+            if (username.trim() !== "") {
+                socket.emit("setUsername", username);
+                document.getElementById("chat").style.display = "block";
+            }
+        }
+
+        socket.on("userList", (users) => {
+            document.getElementById("userList").innerHTML = users.map(user => `<li>${user}</li>`).join("");
+        });
+
+        function sendMessage() {
+            const message = document.getElementById("messageInput").value;
+            socket.emit("message", message);
+            document.getElementById("messageInput").value = "";
+        }
+
+        socket.on("message", (msg) => {
+            document.getElementById("messages").innerHTML += `<p><strong>${msg.user}:</strong> ${msg.text}</p>`;
+        });
+    </script>
+</body>
+</html>
